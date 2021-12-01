@@ -1,0 +1,9 @@
+FROM busybox:latest
+
+USER nobody
+
+WORKDIR /
+
+COPY  backend /backend
+
+CMD ["/backend"]
