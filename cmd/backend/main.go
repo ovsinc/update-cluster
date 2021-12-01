@@ -36,9 +36,15 @@ func run(lifecycle fx.Lifecycle, svc *agent.PubSub) error {
 			OnStart: func(context.Context) error {
 				return nil
 			},
+
 			OnStop: func(c context.Context) error {
-				svc.Unsubscribes()
+				log.Println("[BACKEND] stops server...")
+
+				_ = svc.Unsubscribes()
+
 				time.Sleep(common.Config.BackendShutdownDur)
+
+				log.Println("[BACKEND] server stopped")
 				return nil
 			},
 		},

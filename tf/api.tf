@@ -12,8 +12,8 @@ resource "docker_service" "api" {
     ports {
       protocol       = "tcp"
       publish_mode   = "ingress"
-      published_port = 80
-      target_port    = 8000
+      published_port = var.LISTEN_PORT
+      target_port    = var.API_PORT
     }
   }
 
@@ -44,10 +44,11 @@ resource "docker_service" "api" {
         API_SHUTDOWN = var.API_SHUTDOWN
         API_VERSION  = var.API_VERSION
         STOP_TIMEOUT = var.STOP_TIMEOUT
+        PORT         = var.API_PORT
       }
 
       healthcheck {
-        test     = ["CMD", "wget", "--spider", "http://127.0.0.1:8000/health"]
+        test     = ["CMD", "wget", "--spider", "http://127.0.0.1:${var.API_PORT}/health"]
         interval = "10s"
         timeout  = "2s"
         retries  = 4
@@ -75,7 +76,7 @@ resource "docker_service" "api" {
     }
 
     restart_policy {
-      condition    = "on-failure"
+      condition    = "any"
       delay        = "${var.API_STARTS_DELAY}s"
       max_attempts = var.API_STARTS_COUNT
       window       = "2s"

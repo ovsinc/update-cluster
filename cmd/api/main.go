@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -49,19 +47,11 @@ func newEncoder() common.Encoder {
 //
 
 func run(lifecycle fx.Lifecycle, app *fiber.App, nc *nats.Conn, enc common.Encoder) error {
-	port, err := strconv.Atoi(os.Getenv(_portEnv))
-	if err != nil {
-		log.Printf("port error: %v", err)
-		log.Printf("use default port: %d", _port)
-		port = _port
-	}
 	svc := api.NewService(app)
 
 	lifecycle.Append(
 		fx.Hook{
 			OnStart: func(ctx context.Context) error {
-				log.Printf("HTTP server listen :%d", port)
-
 				svc.Registry(api.Routers{
 					_heath_path: api.Route{
 						Method:  http.MethodGet,
@@ -78,22 +68,29 @@ func run(lifecycle fx.Lifecycle, app *fiber.App, nc *nats.Conn, enc common.Encod
 				})
 
 				go func() {
-					_ = app.Listen(fmt.Sprintf(":%d", port))
+					_ = app.Listen(fmt.Sprintf(":%d", common.Config.Port))
 				}()
+
+				log.Println("[API] server started")
+
 				return nil
 			},
+
 			OnStop: func(context.Context) error {
-				log.Printf("Stop server on :%d", port)
+				log.Println("[API] stops server...")
+
 				svc.Ungregistry()
+				err := app.Shutdown()
+
 				time.Sleep(common.Config.APIShutdownDur)
-				return app.Shutdown()
+
+				log.Println("[API] server stopped")
+				return err
 			},
 		},
 	)
 	return nil
 }
-
-var port int
 
 func main() {
 	appCtx := fx.New(

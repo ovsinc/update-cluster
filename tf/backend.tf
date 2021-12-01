@@ -57,7 +57,7 @@ resource "docker_service" "backend" {
     }
 
     restart_policy {
-      condition    = "on-failure"
+      condition    = "any"
       delay        = "${var.BACKEND_STARTS_DELAY}s"
       max_attempts = var.BACKEND_STARTS_COUNT
       window       = "2s"

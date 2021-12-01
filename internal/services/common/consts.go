@@ -11,7 +11,7 @@ import (
 
 type ConfigType struct {
 	NatsURL string `envconfig:"URL" default:"127.0.0.1"`
-	Port    int    `default:"8000"`
+	Port    int    `envconfig:"PORT" default:"8000"`
 
 	GracefulStop        uint          `envconfig:"STOP_TIMEOUT" default:"10"`
 	GracefulStopTimeout time.Duration `ignored:"true"`

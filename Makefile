@@ -32,7 +32,7 @@ build: build_code build_docker ## Build all
 build_code: build_backend build_api ## Build all code
 
 .PHONY: build_backend
-build_backend: ## Build the backend server
+build_backend: ## Build the BACKEND server
 	@CGO_ENABLED=0 \
 		go build \
 		-v -mod=vendor -installsuffix cgo \
@@ -48,7 +48,7 @@ build_api: ## Build the API server
 		${_CURDIR}/cmd/api
 
 .PHONY: build_docker
-build_docker: ## Build the Docker images
+build_docker: ## Build and push the Docker images
 	@docker build \
 		--force-rm \
 		--tag "${BACKEND_IMAGE}" \
@@ -74,6 +74,12 @@ build_docker: ## Build the Docker images
 	@echo "PUSH '${API_IMAGE}' -> '${REGISTRY_URL}'"
 	@docker push "${REGISTRY_URL}/${API_IMAGE}"
 	@docker push "${REGISTRY_URL}/${API_IMG}:latest"
+
+
+
+.PHONY: registry
+registry: ## Run local registry
+	@docker stack deploy -c "${_CURDIR}/docker/registry.yml" registry
 
 
 .PHONY: start
