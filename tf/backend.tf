@@ -38,7 +38,7 @@ resource "docker_service" "backend" {
         test     = ["CMD", "/prober"]
         interval = "10s"
         timeout  = "2s"
-        retries  = 4
+        retries  = 2
       }
     }
 
@@ -66,7 +66,6 @@ resource "docker_service" "backend" {
       condition    = "any"
       delay        = "${var.BACKEND_STARTS_DELAY}s"
       max_attempts = var.BACKEND_STARTS_COUNT
-      window       = "2s"
     }
   }
 
@@ -81,10 +80,10 @@ resource "docker_service" "backend" {
 
   rollback_config {
     parallelism       = 1
-    delay             = "5ms"
+    delay             = "${var.BACKEND_STARTS_DELAY}s"
     failure_action    = "pause"
-    monitor           = "10h"
-    max_failure_ratio = "0.9"
+    monitor           = "${var.BACKEND_STARTS_DELAY * (1 + var.BACKEND_STARTS_COUNT)}s"
+    max_failure_ratio = "0.0"
     order             = "stop-first"
   }
 }

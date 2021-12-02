@@ -25,11 +25,11 @@ resource "docker_service" "api" {
   }
 
   task_spec {
+    runtime      = "container"
     force_update = 0
     networks = [
       docker_network.bus_network.id
     ]
-    runtime = "container"
 
     container_spec {
       image     = docker_image.api.repo_digest
@@ -57,7 +57,8 @@ resource "docker_service" "api" {
         test     = ["CMD", "/prober"]
         interval = "10s"
         timeout  = "2s"
-        retries  = 4
+        retries  = 2
+        # start_period = "${var.BACKEND_SHUTDOWN}s"
       }
     }
 
@@ -85,7 +86,6 @@ resource "docker_service" "api" {
       condition    = "any"
       delay        = "${var.API_STARTS_DELAY}s"
       max_attempts = var.API_STARTS_COUNT
-      window       = "2s"
     }
   }
 
@@ -100,10 +100,10 @@ resource "docker_service" "api" {
 
   rollback_config {
     parallelism       = 1
-    delay             = "5ms"
+    delay             = "${var.API_STARTS_DELAY}s"
     failure_action    = "pause"
-    monitor           = "10h"
-    max_failure_ratio = "0.9"
+    monitor           = "${var.API_STARTS_DELAY * (var.API_STARTS_COUNT + 1)}s"
+    max_failure_ratio = "0.0"
     order             = "stop-first"
   }
 }
