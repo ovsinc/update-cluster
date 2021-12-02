@@ -9,6 +9,8 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
+var APIVersion string
+
 type ConfigType struct {
 	NatsURL string `envconfig:"URL" default:"127.0.0.1"`
 	Port    int    `envconfig:"PORT" default:"8000"`
@@ -25,9 +27,9 @@ type ConfigType struct {
 	BackendShutdown    uint          `envconfig:"BACKEND_SHUTDOWN" default:"10"`
 	BackendShutdownDur time.Duration `ignored:"true"`
 
-	APIVersion   string `envconfig:"API_VERSION" default:"v1"`
 	HelloSubject string `ignored:"true"`
-	QueueGroup   string `envconfig:"QUEUE" default:"ru.example.queue"`
+
+	QueueGroup string `envconfig:"QUEUE" default:"ru.example.queue"`
 }
 
 var Config ConfigType
@@ -44,7 +46,7 @@ func init() {
 	Config.APIShutdownDur = time.Duration(int64(time.Second) * int64(Config.APIShutdown))
 	Config.BackendShutdownDur = time.Duration(int64(time.Second) * int64(Config.BackendShutdown))
 
-	Config.HelloSubject = fmt.Sprintf("hello.%v", Config.APIVersion)
+	Config.HelloSubject = fmt.Sprintf("api.%v.hello", APIVersion)
 
 	data, _ := json.Marshal(&Config)
 	log.Printf("Configuration: %#v\n", string(data))

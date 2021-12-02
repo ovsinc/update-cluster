@@ -17,8 +17,6 @@ import (
 )
 
 const (
-	_portEnv    = "API_PORT"
-	_port       = 8000
 	_heath_path = "/health"
 	_api_path   = "/hello"
 	_whoami     = "/"
@@ -101,6 +99,7 @@ func main() {
 		fx.Provide(
 			newApp,
 			newEncoder,
+			common.ConfigNats,
 			common.ConnectNats,
 		),
 

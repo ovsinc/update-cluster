@@ -31,8 +31,14 @@ resource "docker_service" "backend" {
       env = {
         URL              = docker_service.nats.name
         BACKEND_SHUTDOWN = var.BACKEND_SHUTDOWN
-        API_VERSION      = var.API_VERSION
         STOP_TIMEOUT     = var.STOP_TIMEOUT
+      }
+
+      healthcheck {
+        test     = ["CMD", "/prober"]
+        interval = "10s"
+        timeout  = "2s"
+        retries  = 4
       }
     }
 

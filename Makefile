@@ -1,22 +1,27 @@
-_CURDIR := `git rev-parse --show-toplevel 2>/dev/null | sed -e 's/(//'`
-_BUILD_DIR := "${_CURDIR}/build"
+_CURDIR = `git rev-parse --show-toplevel 2>/dev/null | sed -e 's/(//'`
 
 
-REGISTRY_URL = "127.0.0.1:5000"
+REGISTRY_URL := "127.0.0.1:5000"
+
+
+API_VERSION := "v1"
 
 
 API_IMG := "test-api"
-API_IMG_TAG := "v1"
-API_IMAGE := "${API_IMG}:${API_IMG_TAG}"
+API_IMG_TAG = "${API_VERSION}"
+API_IMAGE = "${API_IMG}:${API_IMG_TAG}"
 
 
 BACKEND_IMG := "test-backend"
-BACKEND_IMG_TAG := "v1"
-BACKEND_IMAGE := "${BACKEND_IMG}:${BACKEND_IMG_TAG}"
+BACKEND_IMG_TAG = "${API_VERSION}"
+BACKEND_IMAGE = "${BACKEND_IMG}:${BACKEND_IMG_TAG}"
 
-AGENT_OUT := "${_CURDIR}/build/backend"
-API_OUT := "${_CURDIR}/build/api"
 
+_BUILD_DIR = "${_CURDIR}/build"
+
+AGENT_OUT = "${_BUILD_DIR}/backend"
+API_OUT = "${_BUILD_DIR}/api"
+PROBER_OUT ="${_BUILD_DIR}/prober"
 
 
 
@@ -29,23 +34,38 @@ build: build_code build_docker ## Build all
 
 
 .PHONY: build_code
-build_code: build_backend build_api ## Build all code
+build_code: build_prober build_backend build_api ## Build all code
+
+.PHONY: build_prober
+build_prober: ## Build the prober util
+	@CGO_ENABLED=0 \
+		go build \
+		-o ${PROBER_OUT} \
+		-v -mod=vendor -installsuffix cgo \
+		-ldflags \
+		"-X github.com/ovsinc/update-cluster/internal/services/common.APIVersion=${API_VERSION}" \
+		${_CURDIR}/cmd/prober
 
 .PHONY: build_backend
 build_backend: ## Build the BACKEND server
 	@CGO_ENABLED=0 \
 		go build \
-		-v -mod=vendor -installsuffix cgo \
 		-o ${AGENT_OUT} \
+		-v -mod=vendor -installsuffix cgo \
+		-ldflags \
+		"-X github.com/ovsinc/update-cluster/internal/services/common.APIVersion=${API_VERSION}" \
 		${_CURDIR}/cmd/backend
 
 .PHONY: build_api
 build_api: ## Build the API server
 	@CGO_ENABLED=0 \
 		go build \
-		-v -mod=vendor -installsuffix cgo \
 		-o ${API_OUT} \
+		-v -mod=vendor -installsuffix cgo \
+		-ldflags \
+		"-X github.com/ovsinc/update-cluster/internal/services/common.APIVersion=${API_VERSION}" \
 		${_CURDIR}/cmd/api
+
 
 .PHONY: build_docker
 build_docker: ## Build and push the Docker images
@@ -84,11 +104,23 @@ registry: ## Run local registry
 
 .PHONY: start
 start: ## Run services with TF
-	@pushd "${_CURDIR}/tf" &>/dev/null && terraform apply -auto-approve  || popd &>/dev/null
+	@docker swarm init || /bin/true 
+	@pushd "${_CURDIR}/tf" &>/dev/null && \
+		terraform apply \
+		-auto-approve  || \
+		popd &>/dev/null
+# @pushd "${_CURDIR}/tf" &>/dev/null && \
+# 	terraform apply \
+# 	-var "api_tag=${API_IMG_TAG}" \
+# 	-var "backend_tag=${BACKEND_IMG_TAG}" \
+# 	-auto-approve  || \
+# 	popd &>/dev/null
 
 .PHONY: stop
 stop: ## Stop services with TF
-	@pushd "${_CURDIR}/tf" &>/dev/null && terraform destroy -auto-approve || popd &>/dev/null
+	@pushd "${_CURDIR}/tf" &>/dev/null && \
+		terraform destroy -auto-approve || \
+		popd &>/dev/null
 
 
 .PHONY: clean

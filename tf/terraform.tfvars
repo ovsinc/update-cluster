@@ -1,4 +1,4 @@
-// docker images tags
+// docker
 
 api_tag     = "latest"
 backend_tag = "latest"
@@ -9,7 +9,6 @@ backend_replicas = 1
 
 // envs
 
-API_VERSION = "v1"
 LISTEN_PORT = 80
 
 // update_config.monitor = API_STARTS_COUNT * (API_STARTS_DELAY+1)

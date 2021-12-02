@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -54,13 +55,21 @@ func run(lifecycle fx.Lifecycle, svc *agent.PubSub) error {
 
 //
 
+func die() { //nolint:deadcode,unused
+	log.Println("[BACKEND] Simulates fail")
+	os.Exit(255)
+}
+
 func main() {
+	// die()
+
 	appCtx := fx.New(
 		// options
 		fx.StartTimeout(common.Config.GracefulStartTimeout),
 		fx.StopTimeout(common.Config.GracefulStopTimeout),
 
 		fx.Provide(
+			common.ConfigNats,
 			common.ConnectNats,
 			newEncoder,
 			newHandlers,

@@ -42,13 +42,19 @@ resource "docker_service" "api" {
       env = {
         URL          = docker_service.nats.name
         API_SHUTDOWN = var.API_SHUTDOWN
-        API_VERSION  = var.API_VERSION
         STOP_TIMEOUT = var.STOP_TIMEOUT
         PORT         = var.API_PORT
       }
 
+      # healthcheck {
+      #   test     = ["CMD", "wget", "--spider", "http://127.0.0.1:${var.API_PORT}/health"]
+      #   interval = "10s"
+      #   timeout  = "2s"
+      #   retries  = 4
+      # }
+
       healthcheck {
-        test     = ["CMD", "wget", "--spider", "http://127.0.0.1:${var.API_PORT}/health"]
+        test     = ["CMD", "/prober"]
         interval = "10s"
         timeout  = "2s"
         retries  = 4

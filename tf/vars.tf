@@ -1,5 +1,5 @@
 
-// docker images tags
+// docker
 
 variable "api_tag" {
   type = string
@@ -8,6 +8,7 @@ variable "api_tag" {
 variable "backend_tag" {
   type = string
 }
+
 
 variable "api_replicas" {
   type = number
@@ -48,10 +49,6 @@ variable "BACKEND_STARTS_DELAY" {
 }
 
 //
-
-variable "API_VERSION" {
-  type = string
-}
 
 variable "STOP_TIMEOUT" {
   type = number
